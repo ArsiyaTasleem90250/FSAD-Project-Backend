@@ -1,12 +1,13 @@
 package com.klu.demo.service;
 
+import java.util.Random;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.klu.demo.entity.User;
 import com.klu.demo.repository.UserRepository;
-
-import java.util.Random;
 
 @Service
 public class AuthService {
@@ -15,6 +16,8 @@ public class AuthService {
     private UserRepository userRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // 🔢 Generate OTP
     public String generateOtp() {
@@ -36,12 +39,12 @@ public class AuthService {
     public User register(User user) {
         String otp = generateOtp();
 
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // ✅ ADD THIS
+
         user.setOtp(otp);
         user.setOtpExpiry(System.currentTimeMillis() + (5 * 60 * 1000)); // 5 mins
         user.setVerified(false);
 
-        // TODO: send email here
-//        System.out.println("OTP: " + otp);
         emailService.sendOtpEmail(user.getEmail(), otp);
 
         return userRepository.save(user);
@@ -98,7 +101,7 @@ public class AuthService {
             throw new RuntimeException("Please verify your email first");
         }
 
-        if (user.getPassword().equals(password)) {
+        if (passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
 
