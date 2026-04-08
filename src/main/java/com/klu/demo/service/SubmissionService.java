@@ -25,6 +25,11 @@ public class SubmissionService {
         return String.format("%04d", (hash % 9000) + 1000);
     }
 
+    private Integer clampMarks(Integer marks){
+        if(marks == null) return null;
+        return Math.max(1, Math.min(100, marks));
+    }
+
     private Course ensureCourseExists(String courseTitle){
         if(courseTitle==null || courseTitle.isBlank()) return null;
         String normalized = courseTitle.trim();
@@ -48,6 +53,7 @@ public class SubmissionService {
         Course c = ensureCourseExists(title);
         s.setCourse(c!=null ? c.getTitle() : title);
         s.setCourseId(genCourseId(title));
+        s.setMarks(clampMarks(s.getMarks()));
         if(s.getSubmittedAt()==null) s.setSubmittedAt(Instant.now());
         return repo.save(s);
     }
@@ -60,6 +66,7 @@ public class SubmissionService {
             Course c = ensureCourseExists(title);
             ex.setCourse(c!=null ? c.getTitle() : title);
             ex.setCourseId(genCourseId(title));
+            ex.setMarks(clampMarks(in.getMarks()));
             ex.setStudentName(in.getStudentName());
             ex.setStudentEmail(in.getStudentEmail());
             ex.setDepartment(in.getDepartment());

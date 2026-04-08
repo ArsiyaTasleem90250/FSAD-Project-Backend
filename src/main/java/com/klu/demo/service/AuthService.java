@@ -48,13 +48,15 @@ public class AuthService {
         User saved = userRepository.save(user);
 
         // also store in registration table (keep a single source for roster/reporting)
-        // store every signup in registration table for reporting (role distinguishes)
-        Registration reg = new Registration();
-        reg.setEmail(saved.getEmail());
-        reg.setRole(saved.getRole());
-        reg.setDepartment(saved.getDepartment());
-        reg.setExperience(req.getExperience() != null ? req.getExperience() : 0);
-        registrationRepository.save(reg);
+        // only store Faculty/Admin in registration table
+        if ("Admin".equalsIgnoreCase(saved.getRole()) || "Faculty".equalsIgnoreCase(saved.getRole())) {
+            Registration reg = new Registration();
+            reg.setEmail(saved.getEmail());
+            reg.setRole(saved.getRole());
+            reg.setDepartment(saved.getDepartment());
+            reg.setExperience(req.getExperience() != null ? req.getExperience() : 0);
+            registrationRepository.save(reg);
+        }
 
         return saved;
     }
