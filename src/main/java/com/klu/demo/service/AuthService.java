@@ -6,8 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.klu.demo.dto.RegisterRequest;
 import com.klu.demo.entity.User;
 import com.klu.demo.repository.UserRepository;
+import com.klu.demo.entity.Registration;
+import com.klu.demo.repository.RegistrationRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -15,96 +19,78 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private RegistrationRepository registrationRepository;
+    @Autowired
     private EmailService emailService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // 🔢 Generate OTP
-    public String generateOtp() {
-        int otp = new Random().nextInt(900000) + 100000;
-        return String.valueOf(otp);
+    private String generateOtp() {
+        return String.valueOf(new Random().nextInt(900000) + 100000);
     }
 
-    // 🔍 Find user by email
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
-    // 💾 Save/Update user
-    public User saveUser(User user) {
-        return userRepository.save(user);
-    }
-
-    // 📝 REGISTER (with OTP)
-    public User register(User user) {
+    @Transactional
+    public User register(RegisterRequest req) {
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
         String otp = generateOtp();
-
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // ✅ ADD THIS
-
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setRole(req.getRole());
+        user.setDepartment(req.getDepartment());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setOtp(otp);
-        user.setOtpExpiry(System.currentTimeMillis() + (5 * 60 * 1000)); // 5 mins
+        user.setOtpExpiry(System.currentTimeMillis() + 5 * 60 * 1000);
         user.setVerified(false);
-
         emailService.sendOtpEmail(user.getEmail(), otp);
+        User saved = userRepository.save(user);
 
-        return userRepository.save(user);
+        // also store in registration table (keep a single source for roster/reporting)
+        // store every signup in registration table for reporting (role distinguishes)
+        Registration reg = new Registration();
+        reg.setEmail(saved.getEmail());
+        reg.setRole(saved.getRole());
+        reg.setDepartment(saved.getDepartment());
+        reg.setExperience(req.getExperience() != null ? req.getExperience() : 0);
+        registrationRepository.save(reg);
+
+        return saved;
     }
 
-    // ✅ VERIFY OTP
     public String verifyOtp(String email, String otp) {
-        User user = findByEmail(email);
-
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return "User not found";
-
-        if (user.getOtp() == null) return "No OTP found";
-
-        if (!user.getOtp().equals(otp)) return "Invalid OTP";
-
+        if (user.isVerified()) return "Already verified";
+        if (user.getOtp() == null || user.getOtpExpiry() == null) return "No OTP found";
         if (user.getOtpExpiry() < System.currentTimeMillis()) return "OTP expired";
-
+        if (!user.getOtp().equals(otp)) return "Invalid OTP";
         user.setVerified(true);
         user.setOtp(null);
         user.setOtpExpiry(null);
-
         userRepository.save(user);
-
         return "Verified successfully";
     }
 
-    // 🔁 RESEND OTP
     public String resendOtp(String email) {
-        User user = findByEmail(email);
-
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return "User not found";
-
+        if (user.isVerified()) return "Already verified";
         String otp = generateOtp();
-
         user.setOtp(otp);
-        user.setOtpExpiry(System.currentTimeMillis() + (5 * 60 * 1000));
-
+        user.setOtpExpiry(System.currentTimeMillis() + 5 * 60 * 1000);
         userRepository.save(user);
-
-        // TODO: send email here
-//        System.out.println("Resent OTP: " + otp);
         emailService.sendOtpEmail(user.getEmail(), otp);
-
         return "OTP resent successfully";
     }
 
-    // 🔐 LOGIN
     public User login(String email, String password) {
-        User user = findByEmail(email);
-
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) return null;
-
-        if (!user.isVerified()) {
-            throw new RuntimeException("Please verify your email first");
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return null;
         }
-
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return user;
-        }
-
-        return null;
+        return user;
     }
 }

@@ -1,33 +1,22 @@
 package com.klu.demo.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import com.klu.demo.entity.Submission;
 import com.klu.demo.service.SubmissionService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/submissions")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class SubmissionController {
+    @Autowired private SubmissionService svc;
 
-    @Autowired
-    private SubmissionService submissionService;
-
-    @PostMapping
-    public Submission addSubmission(@RequestBody Submission submission) {
-        return submissionService.addSubmission(submission);
+    @PostMapping public ResponseEntity<?> add(@RequestBody Submission s){ return ResponseEntity.ok(svc.add(s)); }
+    @GetMapping  public List<Submission> all(){ return svc.all(); }
+    @PutMapping("/{id}") public ResponseEntity<?> upd(@PathVariable Long id,@RequestBody Submission s){
+        try{return ResponseEntity.ok(svc.update(id,s));}catch(IllegalArgumentException e){return ResponseEntity.notFound().build();}
     }
-
-    @GetMapping
-    public List<Submission> getAllSubmissions() {
-        return submissionService.getAllSubmissions();
-    }
+    @DeleteMapping("/{id}") public ResponseEntity<?> del(@PathVariable Long id){ svc.delete(id); return ResponseEntity.noContent().build(); }
 }

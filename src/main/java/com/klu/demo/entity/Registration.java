@@ -3,31 +3,25 @@ package com.klu.demo.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "registration")
 public class Registration {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String email;
+    private String role;        // Student/Admin
+    private String department;
+    private Integer experience; // only for Admin if needed
 
-    private Long studentId;
-    private Long courseId;
-
-    // Constructors
     public Registration() {}
 
-    public Registration(Long id, Long studentId, Long courseId) {
-        this.id = id;
-        this.studentId = studentId;
-        this.courseId = courseId;
-    }
-
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public Long getStudentId() { return studentId; }
-    public void setStudentId(Long studentId) { this.studentId = studentId; }
-
-    public Long getCourseId() { return courseId; }
-    public void setCourseId(Long courseId) { this.courseId = courseId; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+    public Integer getExperience() { return experience; }
+    public void setExperience(Integer experience) { this.experience = experience; }
 }

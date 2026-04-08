@@ -7,13 +7,14 @@ import org.springframework.web.bind.annotation.*;
 import com.klu.demo.dto.AuthResponse;
 import com.klu.demo.dto.LoginRequest;
 import com.klu.demo.dto.VerifyOtpRequest;
+import com.klu.demo.dto.RegisterRequest;
 import com.klu.demo.entity.User;
 import com.klu.demo.security.JwtUtil;
 import com.klu.demo.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     @Autowired
@@ -22,33 +23,25 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // 📝 REGISTER
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-
-        User savedUser = authService.register(user);
-
+    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+        User savedUser = authService.register(req);
         AuthResponse response = new AuthResponse(
                 savedUser.getId(),
                 savedUser.getName(),
                 savedUser.getRole(),
                 savedUser.isVerified()
         );
-
         return ResponseEntity.ok(response);
     }
 
-    // 🔐 LOGIN
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-
         try {
             User user = authService.login(request.getEmail(), request.getPassword());
 
             if (user == null) {
-                return ResponseEntity
-                        .status(401)
-                        .body("Invalid email or password");
+                return ResponseEntity.status(401).body("Invalid email or password");
             }
 
             String token = jwtUtil.generateToken(user.getEmail());
@@ -64,27 +57,28 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            return ResponseEntity
-                    .status(403)
-                    .body(e.getMessage());
+            return ResponseEntity.status(403).body(e.getMessage());
         }
     }
 
-    // ✅ VERIFY OTP
     @PostMapping("/verify")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
-
         String result = authService.verifyOtp(request.getEmail(), request.getOtp());
-
-        return ResponseEntity.ok(result);
+        if ("Verified successfully".equalsIgnoreCase(result) || "Already verified".equalsIgnoreCase(result)) {
+            return ResponseEntity.ok(result);
+        }
+        if ("User not found".equalsIgnoreCase(result)) {
+            return ResponseEntity.status(404).body(result);
+        }
+        return ResponseEntity.badRequest().body(result);
     }
 
-    // 🔁 RESEND OTP
     @PostMapping("/resend-otp")
     public ResponseEntity<?> resendOtp(@RequestBody LoginRequest request) {
-
         String result = authService.resendOtp(request.getEmail());
-
+        if ("User not found".equalsIgnoreCase(result)) {
+            return ResponseEntity.status(404).body(result);
+        }
         return ResponseEntity.ok(result);
     }
 }

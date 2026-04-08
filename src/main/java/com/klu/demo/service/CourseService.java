@@ -15,7 +15,16 @@ public class CourseService {
     private CourseRepository courseRepository;
 
     public Course addCourse(Course course) {
-        return courseRepository.save(course);
+        if(course==null || course.getTitle()==null || course.getTitle().isBlank()){
+            throw new IllegalArgumentException("Course title is required");
+        }
+        String title = course.getTitle().trim();
+        // avoid duplicates by title (case-insensitive)
+        return courseRepository.findByTitleIgnoreCase(title)
+                .orElseGet(() -> {
+                    course.setTitle(title);
+                    return courseRepository.save(course);
+                });
     }
 
     public List<Course> getAllCourses() {

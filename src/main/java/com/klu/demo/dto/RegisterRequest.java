@@ -7,6 +7,7 @@ public class RegisterRequest {
     private String password;
     private String role;
     private String department;
+    private Integer experience; // only for Admin
 
     public RegisterRequest() {}
 
@@ -24,4 +25,7 @@ public class RegisterRequest {
 
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
+
+    public Integer getExperience() { return experience; }
+    public void setExperience(Integer experience) { this.experience = experience; }
 }
