@@ -30,4 +30,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 2020
 
-ENTRYPOINT ["java","-jar","app.war"]
+CMD ["java", "-jar", "app.jar"]
