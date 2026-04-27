@@ -14,7 +14,7 @@ import com.klu.demo.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     @Autowired
@@ -82,3 +82,4 @@ public class AuthController {
         return ResponseEntity.ok(result);
     }
 }
+

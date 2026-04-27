@@ -15,12 +15,15 @@ public class Submission {
     private Long id;
 
     private String course;
-    private String courseId;          // 4‑digit stable code
+    private String courseId;
     private String studentName;
+    private String studentEmail;
+    private String department;
     private String idNumber;
     private String fileName;
 
-    @Lob @Column(columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String fileData;
 
     private Integer marks;
@@ -32,44 +35,40 @@ public class Submission {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public String getCourse() { return course; }
     public void setCourse(String course) { this.course = course; }
+
     public String getCourseId() { return courseId; }
     public void setCourseId(String courseId) { this.courseId = courseId; }
+
     public String getStudentName() { return studentName; }
     public void setStudentName(String studentName) { this.studentName = studentName; }
+
+    public String getStudentEmail() { return studentEmail; }
+    public void setStudentEmail(String studentEmail) { this.studentEmail = studentEmail; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
     public String getIdNumber() { return idNumber; }
     public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
+
     public String getFileName() { return fileName; }
     public void setFileName(String fileName) { this.fileName = fileName; }
+
     public String getFileData() { return fileData; }
     public void setFileData(String fileData) { this.fileData = fileData; }
+
     public Integer getMarks() { return marks; }
     public void setMarks(Integer marks) { this.marks = marks; }
+
     public String getGradedBy() { return gradedBy; }
     public void setGradedBy(String gradedBy) { this.gradedBy = gradedBy; }
+
     public Instant getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(Instant submittedAt) { this.submittedAt = submittedAt; }
+
     public Instant getMarkedAt() { return markedAt; }
     public void setMarkedAt(Instant markedAt) { this.markedAt = markedAt; }
-
-	public Object getStudentEmail() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object getDepartment() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void setStudentEmail(Object studentEmail) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setDepartment(Object department) {
-		// TODO Auto-generated method stub
-		
-	}
 }

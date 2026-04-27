@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/submissions")
-@CrossOrigin(origins = "*", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class SubmissionController {
     @Autowired private SubmissionService svc;
 
@@ -20,3 +20,4 @@ public class SubmissionController {
     }
     @DeleteMapping("/{id}") public ResponseEntity<?> del(@PathVariable Long id){ svc.delete(id); return ResponseEntity.noContent().build(); }
 }
+
